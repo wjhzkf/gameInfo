@@ -127,7 +127,7 @@ public class Game {
 	 */
 	public void getAllGameInformation(ExcelWrite excelWrite,String account) throws IOException, RowsExceededException, BiffException, WriteException, InterruptedException {
 		Thread.sleep(3000);
-		///wjh
+		///wjhzkf
 ///////////根据JavaScript获取游戏页面id
 		String inventory="var inventoriesDiv=document.getElementById('inventories');"
 				+ "var idStr;"
