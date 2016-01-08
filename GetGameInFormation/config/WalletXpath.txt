@@ -1,0 +1,11 @@
+loginIdField-//*[@id='input_username']
+loginPwField-//*[@id='input_password']
+loginButton-//*[@id="login_btn_signin"]/button
+currentBalanceA-//*[@id='wallet_current_balance']
+codeInputField-//*[@id='wallet_code']
+codeContinueButton-//*[@id='validate_btn']
+errorDisplaySpan-//*[@id='error_display']
+errorDisplayA-//*[@id='error_display']/a
+accountDiv-//*[@id='code_amount']
+exchangeAccountDiv-//*[@id='code_exchange_amount']
+nextContinueButton-//*[@id='redeem_btn']
