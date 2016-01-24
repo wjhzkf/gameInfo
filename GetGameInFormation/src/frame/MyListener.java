@@ -8,6 +8,7 @@ import java.awt.event.ActionListener;
 import java.io.IOException;
 
 import org.jdom2.JDOMException;
+import org.json.JSONException;
 
 import jxl.read.biff.BiffException;
 import jxl.write.WriteException;
@@ -27,6 +28,14 @@ public class MyListener implements ActionListener {
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
+		if(e.getActionCommand() == "≈‰÷√” œ‰"){
+			try {
+				Process child = Runtime.getRuntime().exec("cmd  /c  start config\\youxiang.txt");
+			} catch (IOException e1) {
+				e1.printStackTrace();
+			}
+		}
+		
 		if(e.getActionCommand() == "≈‰÷√’Àªß"){
 			try {
 				Process child = Runtime.getRuntime().exec("cmd  /c  start config\\Accounts_Validate.txt");
@@ -59,6 +68,9 @@ public class MyListener implements ActionListener {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					} catch (WriteException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					} catch (JSONException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					} 

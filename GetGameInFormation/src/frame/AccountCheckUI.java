@@ -38,6 +38,7 @@ public class AccountCheckUI extends JFrame{
 	public JTextField checkInforField;
 	JButton checkBtn;
 	JButton configBtn;
+	JButton configEmail;
 	/**
 	 * ÷˜√Ê∞Â
 	 */
@@ -51,6 +52,10 @@ public class AccountCheckUI extends JFrame{
 	 * À˘”–≥‰÷µ’ﬂ’ÀªßID
 	 */
 	public List<String> accountIDs =null;
+	/**
+	 *” œ‰
+	 */
+	public List<String> youxiang =null;
 	public static void main(String[] args) {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
@@ -95,15 +100,21 @@ public class AccountCheckUI extends JFrame{
 		
 		checkBtn = new JButton("’ÀªßºÏ≤È");
 		checkBtn.setFont(new Font("Œ¢»Ì—≈∫⁄", Font.PLAIN, 12));
-		checkBtn.setBounds(216, 110, 160, 48);
+		checkBtn.setBounds(86, 110, 160, 48);
 		panel.add(checkBtn);
 		checkBtn.addActionListener(new MyListener(this));
 		
 		configBtn= new JButton("≈‰÷√’Àªß");
 		configBtn.setFont(new Font("Œ¢»Ì—≈∫⁄", Font.PLAIN, 12));
-		configBtn.setBounds(446,110, 160, 48);
+		configBtn.setBounds(306,110, 160, 48);
 		panel.add(configBtn);
 		configBtn.addActionListener(new MyListener(this));
+		
+		configEmail= new JButton("≈‰÷√” œ‰");
+		configEmail.setFont(new Font("Œ¢»Ì—≈∫⁄", Font.PLAIN, 12));
+		configEmail.setBounds(536,110, 160, 48);
+		panel.add(configEmail);
+		configEmail.addActionListener(new MyListener(this));
 		
 	}
 	/**
@@ -132,6 +143,21 @@ public class AccountCheckUI extends JFrame{
 			System.out.println(defaultPassword);
 			accounts.put(defaultId,defaultPassword);
 			accountIDs.add(defaultId);
+		}
+		
+	}
+	public void getYouXiang() throws IOException{
+		BufferedReader bf = null;
+		
+		try {
+			bf = new BufferedReader(new FileReader(new File("config\\youxiang.txt")));
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
+		String temp;
+		youxiang= new ArrayList<String>();
+		while((temp=bf.readLine())!=null){
+			youxiang.add(temp);
 		}
 		
 	}

@@ -17,6 +17,7 @@ import java.util.Set;
 
 
 import org.jdom2.JDOMException;
+import org.json.JSONException;
 import org.openqa.selenium.By;
 import org.openqa.selenium.Cookie;
 import org.openqa.selenium.Dimension;
@@ -31,7 +32,7 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 
 import dao.ExcelWrite;
 import frame.AccountCheckUI;
-import game.Game;
+import game.Game2;
 import jxl.read.biff.BiffException;
 import jxl.write.WriteException;
 import jxl.write.biff.RowsExceededException;
@@ -54,7 +55,7 @@ public class WebMethods {
 	WebDriver driver=null;
 	WebDriverWait wait=null;
 	productElement element=null;
-	public Game steamGame=null;
+	public Game2 steamGame=null;
 	ExcelWrite excelWrite=null;
 	/**
 	 * 游戏个数
@@ -80,12 +81,12 @@ public class WebMethods {
 			this.driver.manage().window().setSize(new Dimension(600, 400));
 			getAllXpath xpath=new getAllXpath();
 			element=new productElement(xpath, wait);
-			steamGame=new Game(element,driver);
+			steamGame=new Game2(element,driver);
 			
 	}
 	
 	
-	public synchronized void batchStart() throws InterruptedException, JDOMException, IOException, RowsExceededException, BiffException, WriteException{
+	public synchronized void batchStart() throws InterruptedException, JDOMException, IOException, RowsExceededException, BiffException, WriteException, JSONException{
 		this.frame.checkInforField.setText("！！！！正在启动浏览器，请耐心等待，请不要重复点击！！！！");		
 		//临时存储账户i
 		int temp=-2;
