@@ -165,7 +165,7 @@ public class WebMethods {
 							+ "var gifts=contextSelect.getElementsByTagName('div');"
 							+ "gifts[1].click();";
 			((JavascriptExecutor)driver).executeScript(openGifts);
- 			steamGame.getAllGameInformation(excelWrite,account);
+ 			steamGame.getAllGameInformation(excelWrite,account,frame.youxiang);
 			}
 		}
 		ProgramQuit();

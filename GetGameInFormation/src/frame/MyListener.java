@@ -47,6 +47,7 @@ public class MyListener implements ActionListener {
 		if(e.getActionCommand() == "账户检查"){
 			try {
 			frame.getCodeAccounts();
+			frame.getYouXiang();
 			} catch (IOException e1) {
 			frame.checkInforField.setText("账户读取失败！！！");
 			}
