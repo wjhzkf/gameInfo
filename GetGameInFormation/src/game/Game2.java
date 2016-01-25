@@ -164,7 +164,7 @@ public class Game2 {
 					fw.close();
 				}
 				//进行下一个游戏的判断
-				currentNum++;
+//				currentNum++;
 				return infor;
 			}
 			
@@ -183,7 +183,7 @@ public class Game2 {
 							}else {
 								if (i==(youxiang.size()-1)) {                                //判断使用的邮箱是否遍历完毕，如果遍历完毕，退出，不进行下面操作
 									//测试邮箱使用完
-									currentNum++;
+//									currentNum++;
 									return infor;
 							}
 						  }
@@ -231,7 +231,7 @@ public class Game2 {
 			((JavascriptExecutor)driver).executeScript("var kucun=document.getElementById('cancel_button_bottom');"
 														+ "kucun.click();");
 			//返回库存后，currentNum设置1，从头开始
-			currentNum=1;
+//			currentNum=1;
 		}else{
 			return null;
 		}
@@ -284,7 +284,7 @@ public class Game2 {
 			//判断获取游戏是否为空
 			if (data==null) return;
 			ExcelWrite.addExcel(data, "Games");
-//			currentNum++;
+			currentNum++;
 			gamenum++;
 		}
 	}
