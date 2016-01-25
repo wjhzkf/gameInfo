@@ -1,0 +1,16 @@
+[
+    {
+        "Counter-Strike: Global Offensive":[
+            " S.teamgoumai02@gmail.com",
+            " Ste.amgoumai02@gmail.com"
+        ]
+    },
+    {
+        "7 Days to Die":[
+            " Steamgoumai01@gmail.com",
+            " S.teamgoumai01@gmail.com",
+            " St.eamgoumai01@gmail.com",
+            " Ste.amgoumai01@gmail.com"
+        ]
+    }
+]

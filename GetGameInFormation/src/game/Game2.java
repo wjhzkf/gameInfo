@@ -45,6 +45,7 @@ public class Game2 {
 	JSONArray emailVas;
 	//当前是第几个游戏
 	int currentNum=1;
+	File game_email_file;
 //	JavascriptExecutor driver_js;
 	/**
 	 * 账户登录成功，获取游戏个数
@@ -61,12 +62,11 @@ public class Game2 {
 	 * @throws JSONException 
 	 * @throws InterruptedException 
 	 */
-	public String[] getSingelGame(String id,int currentPage,String account,List<String>youxiang) throws IOException, JSONException, InterruptedException {
+	public String[] getSingelGame(int currentPage,String account,List<String>youxiang) throws IOException, JSONException, InterruptedException {
 		String[] infor=new String[6];
 		SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm");//设置日期格式
 		infor[0]=df.format(new Date());
 		infor[1]=account;
-		
 		//存储的整个游戏-邮箱信息
 		emailVas=null;
 		getEmailVas();
@@ -146,7 +146,7 @@ public class Game2 {
  					if (gameEmail.has(infor[2])) {   
  							isContaint=true;
 							if (!gameEmail.toString().contains(infor[5])) {                    //游戏是否已经发送相同邮件
-								FileWriter fw=new FileWriter(new File("config\\youxiangValidate.txt"));
+								FileWriter fw=new FileWriter(game_email_file);
 //								fw.write("");
 								emailVas.getJSONObject(j).append(infor[2],infor[5]);      //记录过在当前游戏后append
 								fw.write(emailVas.toString());
@@ -158,22 +158,13 @@ public class Game2 {
 				if (!isContaint) {
 					gameEmail=new JSONObject();
 					gameEmail.append(infor[2],infor[5]);
-					FileWriter fw=new FileWriter(new File("config\\youxiangValidate.txt"));
+					FileWriter fw=new FileWriter(game_email_file);
 //					fw.write("");
 					fw.write(emailVas.put(gameEmail).toString());                   //新的则put
 					fw.close();
 				}
-				//emailVas初始值
-//				if (emailVas.length()==0) {
-//					gameEmail=new JSONObject();
-//					gameEmail.append(infor[2],infor[5]);
-//					FileWriter fw=new FileWriter(new File("config\\youxiangValidate.txt"));
-//					fw.write("");
-//					fw.write(emailVas.put(gameEmail).toString());                   //新的则put
-//					fw.close();
-//				}
 				//进行下一个游戏的判断
-//				currentNum++;
+				currentNum++;
 				return infor;
 			}
 			
@@ -192,7 +183,7 @@ public class Game2 {
 							}else {
 								if (i==(youxiang.size()-1)) {                                //判断使用的邮箱是否遍历完毕，如果遍历完毕，退出，不进行下面操作
 									//测试邮箱使用完
-//									currentNum++;
+									currentNum++;
 									return infor;
 							}
 						  }
@@ -240,7 +231,7 @@ public class Game2 {
 			((JavascriptExecutor)driver).executeScript("var kucun=document.getElementById('cancel_button_bottom');"
 														+ "kucun.click();");
 			//返回库存后，currentNum设置1，从头开始
-//			currentNum=1;
+			currentNum=1;
 		}else{
 			return null;
 		}
@@ -259,16 +250,17 @@ public class Game2 {
 	public void getAllGameInformation(ExcelWrite excelWrite,String account,List<String> youxiang) throws IOException, RowsExceededException, BiffException, WriteException, InterruptedException, JSONException {
 		Thread.sleep(4000);
 		//用户变换是情况邮箱验证
-		FileWriter fw=new FileWriter(new File("config\\youxiangValidate.txt"));
-		fw.write("[]");
-		fw.close();
-		
-///////////根据JavaScript获取游戏页面id
-		String inventory="var inventoriesDiv=document.getElementById('inventories');"
-							+ "var idStr;"
-							+ "for(var i=0;i<inventoriesDiv.children.length;i++){if(inventoriesDiv.children[i].style.display==''){idStr=inventoriesDiv.children[i].id}}"
-							+ "return idStr";
-		String id= ((JavascriptExecutor)driver).executeScript(inventory).toString();
+
+		game_email_file=new File("config\\gameEmail\\"+account+".txt");
+		if (!game_email_file.exists()) {
+			game_email_file.createNewFile();
+			FileWriter fw=new FileWriter(game_email_file);
+			fw.write("[]");
+			fw.close();
+		}
+		//收集已经发送的信息
+		shoujiGameInfo();
+		currentNum=1;
 		//第几页
 		int currentPage = 1;
 		//记录游戏个数
@@ -288,23 +280,147 @@ public class Game2 {
 				//翻页面后睡3秒
 				Thread.sleep(6000);
 			}
-			String[] data=getSingelGame(id,currentPage,account,youxiang);
+			String[] data=getSingelGame(currentPage,account,youxiang);
 			//判断获取游戏是否为空
 			if (data==null) return;
 			ExcelWrite.addExcel(data, "Games");
-			currentNum++;
+//			currentNum++;
 			gamenum++;
 		}
 	}
 	public void getEmailVas() throws IOException, JSONException {
 		StringBuffer stringBuffer = new StringBuffer();
 		String line = null ;
-		BufferedReader br = new BufferedReader(new FileReader(new File("config\\youxiangValidate.txt")));
+		BufferedReader br = new BufferedReader(new FileReader(game_email_file));
 		while( (line = br.readLine())!= null ){
 			stringBuffer.append(line);
 		} 
 		//获取JSONObject对象数据并打印
 		emailVas= new JSONArray(stringBuffer.toString());
 	}
- 
+	//初次登录收集该账户上所有已经发送的游戏及邮件
+	public void shoujiGameInfo() throws InterruptedException, IOException, JSONException {
+		while (true) {
+			int currentPage = 1;
+			if (currentNum>25) {
+				currentNum=1;
+				currentPage++;
+				if (element.getNextButtonElement().getAttribute("class").equals("pagecontrol_element pagebtn disabled")) return;
+				((JavascriptExecutor)driver).executeScript("var next=document.getElementById('pagebtn_next');"
+														 + "next.click();");
+				//翻页面后睡3秒
+				Thread.sleep(6000);
+			}
+			//判断获取游戏是否为空
+			if (!getemailGame()) return;
+			currentNum++;
+		}
+	}
+	/**
+	 * @param currentPage
+	 * @return
+	 * @throws IOException 
+	 * @throws JSONException 
+	 * @throws InterruptedException 
+	 */
+	private boolean getemailGame() throws IOException, JSONException, InterruptedException {
+		//存储的整个游戏-邮箱信息
+		emailVas=null;
+		getEmailVas();
+		//当前游戏存在的邮箱
+		JSONObject gameEmail=null;
+		//控制邮箱遍历是否完成
+		boolean isover=false;
+		//获取游戏界面
+		 while (((JavascriptExecutor)driver).executeScript("return document.getElementById('inventories');")==null) {
+			 System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>在获取主页面");
+			 ((JavascriptExecutor)driver).executeScript("window.location.reload();");
+		}
+		//利用JavaScript点击游戏元素
+		String isClick;
+			 isClick=((JavascriptExecutor)driver).executeScript("var inventory=document.getElementById('inventories');"
+																+"var inventory_child;"
+																+"var page;"
+																+"var game;"
+																+"for(var i=0;i<inventory.childElementCount;i++){"
+																+"  if(inventory.children[i].style.display=='none'){}else{"												
+																+" inventory_child=inventory.children[i]}"
+																+"}"
+																+ " while (inventory_child==null) {"
+																	+"for(var i=0;i<inventory.childElementCount;i++){"
+																	+"  if(inventory.children[i].style.display=='none'){}else{"												
+																	+" inventory_child=inventory.children[i]}"
+																	+"}"
+																+ "}"
+																+"for(var i=0;i<inventory_child.childElementCount;i++){"
+																+"  if(inventory_child.children[i].style.display=='none'){}else{"
+																+"  if(inventory_child.children[i].className=='inventory_page'){ page=inventory_child.children[i];}"
+																+"}"
+																+"}"
+																+ "game=page.children['"+(currentNum-1)+"'];"		
+																+"  if(game.className=='itemHolder'){game.firstElementChild.firstElementChild.click();return 'true';}else{"									
+																+"return 'false';}").toString();
+
+		
+		if (isClick.equals("true")) {
+			Thread.sleep(3000);
+			Object item=((JavascriptExecutor)driver).executeScript("var info=new Array();"
+																+ "var item0=document.getElementById('iteminfo0');"
+															   	+ "var item1=document.getElementById('iteminfo1');"
+															   	+ "var item;"
+															   	+ "var itemc;"
+															   	+ "var warning;"
+															   	+ "var email;"
+																+ "if(item0.style.display=='none'){item=item1;}"
+																+ "else{item=item0;}"
+																+ "for(var i=0;i<item.children[0].childElementCount;i++){"
+																+ "if(item.children[0].children[i].className=='item_desc_description')"
+																+ "{itemc=item.children[0].children[i];}"
+																+ "}"
+																+ "if(itemc.children[1].style.display=='none'){warning='';}else{"
+																+ "warning=itemc.children[1].getElementsByTagName('span')[0].innerHTML;}"
+																+ "if(itemc.children[5].style.display=='none'||!itemc.children[5].children[0].childElementCount==0){email='';}else{"
+																+ "email=itemc.children[5].children[0].innerHTML;}"
+																+ "return JSON.stringify({'name':itemc.children[0].innerHTML,'descriptor':itemc.children[3].children[0].innerHTML,'warning':warning,'email':email})");
+			//将Json文件数据形成JSONObject对象
+//			String itemstr=item.toString().replace("=",":");
+			String email="";
+			JSONObject jsonObject = new JSONObject(item.toString());
+			String gamename=jsonObject.getString("name");;
+			if (!"".equals(jsonObject.getString("email"))) {
+				email=jsonObject.getString("email").substring(4);
+			}else {
+				email="";
+			}
+			//是否包含游戏
+			boolean isContaint=false;
+			//判断该游戏是否已经发送过邮箱,如果有存在邮箱则跳过邮箱发送
+			if (!email.equals("")) {
+				//记录当前游戏以及邮箱首先判断以前是否记录过
+				for (int j = 0; j < emailVas.length(); j++) {                                //已验证的游戏邮箱
+					gameEmail=emailVas.getJSONObject(j);
+					//如果记录过
+ 					if (gameEmail.has(gamename)) {   
+ 							isContaint=true;
+							if (!gameEmail.toString().contains(email)) {                    //游戏是否已经发送相同邮件
+								FileWriter fw=new FileWriter(game_email_file);
+								emailVas.getJSONObject(j).append(gamename,email);      //记录过在当前游戏后append
+								fw.write(emailVas.toString());
+								fw.close();
+								break;
+							}
+						}
+				}
+				if (!isContaint) {
+					gameEmail=new JSONObject();
+					gameEmail.append(gamename,email);
+					FileWriter fw=new FileWriter(game_email_file);
+					fw.write(emailVas.put(gameEmail).toString());                   //新的则put
+					fw.close();
+				}
+			}
+			return true;
+		}
+		return false;
+	}
 }
