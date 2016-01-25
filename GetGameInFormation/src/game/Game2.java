@@ -43,6 +43,8 @@ public class Game2 {
 	productElement element=null;
 	WebDriver driver;
 	JSONArray emailVas;
+	//当前是第几个游戏
+	int currentNum=1;
 //	JavascriptExecutor driver_js;
 	/**
 	 * 账户登录成功，获取游戏个数
@@ -59,40 +61,49 @@ public class Game2 {
 	 * @throws JSONException 
 	 * @throws InterruptedException 
 	 */
-	public String[] getSingelGame(String id,int currentPage,int num,String account,List<String>youxiang) throws IOException, JSONException, InterruptedException {
+	public String[] getSingelGame(String id,int currentPage,String account,List<String>youxiang) throws IOException, JSONException, InterruptedException {
 		String[] infor=new String[6];
 		SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm");//设置日期格式
 		infor[0]=df.format(new Date());
 		infor[1]=account;
-//////////////获取页面当前游戏  根据selenium
-//		WebElement game=element.getGameElement(id,currentPage, num);
-//		if (game==null) return null;	
-//
-//		//控制跳到inventory0还是inventory1
-//		int numTemp=num;
-////////////获取页面当前游戏  根据selenium
-//		String itemStr=game.getAttribute("class");
-//		while ("".equals(itemStr)) {
-//			System.out.println("game.getAttribute属性抓取为空");
-//			itemStr=game.getAttribute("class");
-//		}
+		
+		//存储的整个游戏-邮箱信息
+		emailVas=null;
+		getEmailVas();
+		//当前游戏存在的邮箱
+		JSONObject gameEmail=null;
+		//控制邮箱遍历是否完成
+		boolean isover=false;
+		//获取游戏界面
+		 while (((JavascriptExecutor)driver).executeScript("return document.getElementById('inventories');")==null) {
+			 System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>在获取主页面");
+			 ((JavascriptExecutor)driver).executeScript("window.location.reload();");
+		}
 		//利用JavaScript点击游戏元素
-		String isClick=((JavascriptExecutor)driver).executeScript("var inventory=document.getElementById('inventories');"
-													+"var inventory_child;"
-													+"var page;"
-													+"var game;"
-													+"for(var i=0;i<inventory.childElementCount;i++){"
-													+"  if(inventory.children[i].style.display=='none'){}else{"												
-													+" inventory_child=inventory.children[i]}"
-													+"}"
-													+"for(var i=0;i<inventory_child.childElementCount;i++){"
-													+"  if(inventory_child.children[i].style.display=='none'){}else{"
-													+"  if(inventory_child.children[i].className=='inventory_page'){ page=inventory_child.children[i];}"
-													+"}"
-													+"}"
-													+ "game=page.children['"+num+"'];"		
-													+"  if(game.className=='itemHolder'){game.click();return 'trun';}else{"									
-													+"return 'false';}").toString();
+		String isClick;
+			 isClick=((JavascriptExecutor)driver).executeScript("var inventory=document.getElementById('inventories');"
+																+"var inventory_child;"
+																+"var page;"
+																+"var game;"
+																+"for(var i=0;i<inventory.childElementCount;i++){"
+																+"  if(inventory.children[i].style.display=='none'){}else{"												
+																+" inventory_child=inventory.children[i]}"
+																+"}"
+																+ " while (inventory_child==null) {"
+																	+"for(var i=0;i<inventory.childElementCount;i++){"
+																	+"  if(inventory.children[i].style.display=='none'){}else{"												
+																	+" inventory_child=inventory.children[i]}"
+																	+"}"
+																+ "}"
+																+"for(var i=0;i<inventory_child.childElementCount;i++){"
+																+"  if(inventory_child.children[i].style.display=='none'){}else{"
+																+"  if(inventory_child.children[i].className=='inventory_page'){ page=inventory_child.children[i];}"
+																+"}"
+																+"}"
+																+ "game=page.children['"+(currentNum-1)+"'];"		
+																+"  if(game.className=='itemHolder'){game.firstElementChild.firstElementChild.click();return 'trun';}else{"									
+																+"return 'false';}").toString();
+
 		
 		if (isClick.equals("trun")) {
 			Object item=((JavascriptExecutor)driver).executeScript("var info=new Array();"
@@ -124,33 +135,65 @@ public class Game2 {
 			}else {
 				infor[5]="";
 			}
+			//是否包含游戏
+			boolean isContaint=false;
+			//判断该游戏是否已经发送过邮箱,如果有存在邮箱则跳过邮箱发送
+			if (!infor[5].equals("")) {
+				//记录当前游戏以及邮箱首先判断以前是否记录过
+				for (int j = 0; j < emailVas.length(); j++) {                                //已验证的游戏邮箱
+					gameEmail=emailVas.getJSONObject(j);
+					//如果记录过
+ 					if (gameEmail.has(infor[2])) {   
+ 							isContaint=true;
+							if (!gameEmail.toString().contains(infor[5])) {                    //游戏是否已经发送相同邮件
+								FileWriter fw=new FileWriter(new File("config\\youxiangValidate.txt"));
+//								fw.write("");
+								emailVas.getJSONObject(j).append(infor[2],infor[5]);      //记录过在当前游戏后append
+								fw.write(emailVas.toString());
+								fw.close();
+								break;
+							}
+						}
+				}
+				if (!isContaint) {
+					gameEmail=new JSONObject();
+					gameEmail.append(infor[2],infor[5]);
+					FileWriter fw=new FileWriter(new File("config\\youxiangValidate.txt"));
+//					fw.write("");
+					fw.write(emailVas.put(gameEmail).toString());                   //新的则put
+					fw.close();
+				}
+				//emailVas初始值
+//				if (emailVas.length()==0) {
+//					gameEmail=new JSONObject();
+//					gameEmail.append(infor[2],infor[5]);
+//					FileWriter fw=new FileWriter(new File("config\\youxiangValidate.txt"));
+//					fw.write("");
+//					fw.write(emailVas.put(gameEmail).toString());                   //新的则put
+//					fw.close();
+//				}
+				//进行下一个游戏的判断
+//				currentNum++;
+				return infor;
+			}
 			
-			
-			
-			//判断邮箱是否该游戏使用过
 			String emailstr = "";
-			boolean isover=false;
-			JSONObject gameEmail=null;
-			int copynum=-1;
-			emailVas=null;
-			getEmailVas();
-//			if (emailVas.length()==0) {
-//				gameEmail=new JSONObject();
-//				emailstr=youxiang.get(0);
-//			}
+
+			//判断邮箱是否重复
 				for (int j = 0; j < emailVas.length(); j++) {                                //已验证的游戏邮箱
 					if (isover) break;
 					gameEmail=emailVas.getJSONObject(j);
-					if (gameEmail.has(infor[2])) {                           //判断该游戏是否存储过
-						copynum=j;
-						for (int i = 0; i < youxiang.size(); i++) {                      //与将要填写的邮箱进行对比
+					if (gameEmail.has(infor[2])) {                                          //判断该游戏是否存储过
+						for (int i = 0; i < youxiang.size(); i++) {                        //与将要填写的邮箱进行对比
 							if (!gameEmail.toString().contains(youxiang.get(i))) {
 								emailstr=youxiang.get(i).toString();
 								isover=true;
 								break;
 							}else {
-							if (i==(youxiang.size()-1)) {                                //判断使用的邮箱是否遍历完毕，如果遍历完毕，退出，不进行下面操作
-							return infor;
+								if (i==(youxiang.size()-1)) {                                //判断使用的邮箱是否遍历完毕，如果遍历完毕，退出，不进行下面操作
+									//测试邮箱使用完
+//									currentNum++;
+									return infor;
 							}
 						  }
 						}
@@ -180,10 +223,10 @@ public class Game2 {
 			
 			//填写邮箱
 			((JavascriptExecutor)driver).executeScript("var input=document.getElementById('email_input');"
-													+ "input.value='"+emailstr+"';"
-													+ "var tab=document.getElementById('gift_recipient_tab');"
-													+ "var next=tab.lastElementChild.lastElementChild.firstElementChild;"
-													+ "next.click();");
+														+ "input.value='"+emailstr+"';");
+			((JavascriptExecutor)driver).executeScript("var tab=document.getElementById('gift_recipient_tab');"
+														+ "var next=tab.lastElementChild.lastElementChild.firstElementChild;"
+														+ "next.click();");
 			//填写接收人信息
 			((JavascriptExecutor)driver).executeScript("var input1=document.getElementById('gift_recipient_name');"
 														+ "input1.value='1';"
@@ -196,24 +239,12 @@ public class Game2 {
 			//返回库存
 			((JavascriptExecutor)driver).executeScript("var kucun=document.getElementById('cancel_button_bottom');"
 														+ "kucun.click();");
-			//将游戏跟邮件信息存储
-			if (copynum==-1) {
-				gameEmail.append(infor[2],emailstr);
-				FileWriter fw=new FileWriter(new File("config\\youxiangValidate.txt"));
-				fw.write("");
-				fw.write(emailVas.put(gameEmail).toString());
-				fw.close();
-			}else {
-				FileWriter fw=new FileWriter(new File("config\\youxiangValidate.txt"));
-				fw.write("");
-				emailVas.getJSONObject(copynum).append(infor[2],emailstr);
-				fw.write(emailVas.toString());
-				fw.close();
-			}
-			Thread.sleep(4000);
+			//返回库存后，currentNum设置1，从头开始
+//			currentNum=1;
 		}else{
 			return null;
 		}
+		Thread.sleep(4000);
 		return infor;
 	}
 	/**
@@ -227,39 +258,42 @@ public class Game2 {
 	 */
 	public void getAllGameInformation(ExcelWrite excelWrite,String account,List<String> youxiang) throws IOException, RowsExceededException, BiffException, WriteException, InterruptedException, JSONException {
 		Thread.sleep(4000);
+		//用户变换是情况邮箱验证
+		FileWriter fw=new FileWriter(new File("config\\youxiangValidate.txt"));
+		fw.write("[]");
+		fw.close();
+		
 ///////////根据JavaScript获取游戏页面id
 		String inventory="var inventoriesDiv=document.getElementById('inventories');"
-				+ "var idStr;"
-				+ "for(var i=0;i<inventoriesDiv.children.length;i++){if(inventoriesDiv.children[i].style.display==''){idStr=inventoriesDiv.children[i].id}}"
-				+ "return idStr";
+							+ "var idStr;"
+							+ "for(var i=0;i<inventoriesDiv.children.length;i++){if(inventoriesDiv.children[i].style.display==''){idStr=inventoriesDiv.children[i].id}}"
+							+ "return idStr";
 		String id= ((JavascriptExecutor)driver).executeScript(inventory).toString();
 		//第几页
 		int currentPage = 1;
-		//控制每页游戏数
-		int i=1;
 		//记录游戏个数
-		int num=1;
+		int gamenum=1;
 		//判断是否库存不可用
 		if (!element.getFalseActiveInventory().getAttribute("style").equals("display: none;")) {System.out.println("库存不可用"); return;}
 		while (true) {
-			System.out.println("正在收集第"+num+"个游戏信息");
+			System.out.println("正在收集第"+gamenum+"个游戏信息");
 //			if (gameNum<num)break;
-			if (i>25) {
-				i=1;
+			if (currentNum>25) {
+				currentNum=1;
 				currentPage++;
 				if (element.getNextButtonElement().getAttribute("class").equals("pagecontrol_element pagebtn disabled")) return;
 				//element.getNextButtonElement().click();
 				((JavascriptExecutor)driver).executeScript("var next=document.getElementById('pagebtn_next');"
 														 + "next.click();");
 				//翻页面后睡3秒
-				Thread.sleep(3000);
+				Thread.sleep(6000);
 			}
-			String[] data=getSingelGame(id,currentPage, i,account,youxiang);
+			String[] data=getSingelGame(id,currentPage,account,youxiang);
 			//判断获取游戏是否为空
 			if (data==null) return;
 			ExcelWrite.addExcel(data, "Games");
-  			i++;
-			num++;
+			currentNum++;
+			gamenum++;
 		}
 	}
 	public void getEmailVas() throws IOException, JSONException {
