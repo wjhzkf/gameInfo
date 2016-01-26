@@ -274,6 +274,7 @@ public class Game2 {
 		//收集已经发送的信息
 		//shoujiGameInfo();
 		currentNum=1;
+		lastemail=0;
 		//第几页
 		int currentPage = 1;
 
