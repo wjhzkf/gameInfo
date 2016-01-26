@@ -45,6 +45,8 @@ public class Game2 {
 	JSONArray emailVas;
 	//当前是第几个游戏
 	int currentNum=1;
+	//上次发送过的邮箱
+	int lastemail=0;
 	File game_email_file;
 //	JavascriptExecutor driver_js;
 	/**
@@ -103,7 +105,8 @@ public class Game2 {
 																+ "game=page.children['"+(currentNum-1)+"'];"		
 																+"  if(game.className=='itemHolder'){game.firstElementChild.firstElementChild.click();return 'trun';}else{"									
 																+"return 'false';}").toString();
-
+			 //防止游戏信息页面没有更新，提取的是上一个游戏的信息
+				Thread.sleep(3000);
 		
 		if (isClick.equals("trun")) {
 			Object item=((JavascriptExecutor)driver).executeScript("var info=new Array();"
@@ -147,7 +150,6 @@ public class Game2 {
  							isContaint=true;
 							if (!gameEmail.toString().contains(infor[5])) {                    //游戏是否已经发送相同邮件
 								FileWriter fw=new FileWriter(game_email_file);
-//								fw.write("");
 								emailVas.getJSONObject(j).append(infor[2],infor[5]);      //记录过在当前游戏后append
 								fw.write(emailVas.toString());
 								fw.close();
@@ -164,35 +166,43 @@ public class Game2 {
 					fw.close();
 				}
 				//进行下一个游戏的判断
-//				currentNum++;
+				currentNum++;
 				return infor;
 			}
 			
 			String emailstr = "";
 
+			//emailVas是否存储当前游戏
+			boolean hasCurrentGame=false;
 			//判断邮箱是否重复
 				for (int j = 0; j < emailVas.length(); j++) {                                //已验证的游戏邮箱
 					if (isover) break;
 					gameEmail=emailVas.getJSONObject(j);
 					if (gameEmail.has(infor[2])) {                                          //判断该游戏是否存储过
-						for (int i = 0; i < youxiang.size(); i++) {                        //与将要填写的邮箱进行对比
-							if (!gameEmail.toString().contains(youxiang.get(i))) {
-								emailstr=youxiang.get(i).toString();
-								isover=true;
-								break;
-							}else {
-								if (i==(youxiang.size()-1)) {                                //判断使用的邮箱是否遍历完毕，如果遍历完毕，退出，不进行下面操作
-									//测试邮箱使用完
-//									currentNum++;
-									return infor;
+						hasCurrentGame=true;
+						if (lastemail!=youxiang.size()-1) {                                   //如果使用到了最后一个邮箱则返回第一个邮箱
+							for (int i = lastemail; i < youxiang.size(); i++) {                        //与将要填写的邮箱进行对比
+								if (!gameEmail.toString().contains(youxiang.get(i))) {
+									emailstr=youxiang.get(i).toString();     
+									lastemail=i;
+									isover=true;
+									break;
+								}else {
+									if (i==(youxiang.size()-1)) {                                //判断使用的邮箱是否遍历完毕，如果遍历完毕，退出，不进行下面操作
+										//测试邮箱使用完
+//										currentNum++;
+										currentNum=0;
+										lastemail=0;
+										return infor;
+								}
+							  }
 							}
-						  }
+						}else {
+							lastemail=0;
 						}
-					}else {
-						gameEmail=null;
 					}
 				}
-				if (gameEmail==null) {
+				if (!hasCurrentGame) {
 						gameEmail=new JSONObject();
 						emailstr=youxiang.get(0);
 				}
@@ -231,7 +241,9 @@ public class Game2 {
 			((JavascriptExecutor)driver).executeScript("var kucun=document.getElementById('cancel_button_bottom');"
 														+ "kucun.click();");
 			//返回库存后，currentNum设置1，从头开始
-//			currentNum=1;
+			currentNum=1;
+			 //如果已经发送邮箱，则lastemail加1
+			lastemail++;
 		}else{
 			return null;
 		}
@@ -263,12 +275,11 @@ public class Game2 {
 		currentNum=1;
 		//第几页
 		int currentPage = 1;
-		//记录游戏个数
-		int gamenum=1;
+
 		//判断是否库存不可用
 		if (!element.getFalseActiveInventory().getAttribute("style").equals("display: none;")) {System.out.println("库存不可用"); return;}
 		while (true) {
-			System.out.println("正在收集第"+gamenum+"个游戏信息");
+			System.out.println("正在收集游戏信息");
 //			if (gameNum<num)break;
 			if (currentNum>25) {
 				currentNum=1;
@@ -283,9 +294,8 @@ public class Game2 {
 			String[] data=getSingelGame(currentPage,account,youxiang);
 			//判断获取游戏是否为空
 			if (data==null) return;
-			ExcelWrite.addExcel(data, "Games");
-			currentNum++;
-			gamenum++;
+//			ExcelWrite.addExcel(data, "Games");
+//			currentNum++;
 		}
 	}
 	public void getEmailVas() throws IOException, JSONException {
