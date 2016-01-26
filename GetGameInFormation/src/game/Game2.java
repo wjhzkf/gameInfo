@@ -124,8 +124,8 @@ public class Game2 {
 																+ "}"
 																+ "if(itemc.children[1].style.display=='none'){warning='';}else{"
 																+ "warning=itemc.children[1].getElementsByTagName('span')[0].innerHTML;}"
-																+ "if(itemc.children[5].style.display=='none'||!itemc.children[5].children[0].childElementCount==0){email='';}else{"
-																+ "email=itemc.children[5].children[0].innerHTML;}"
+																+ "if(itemc.children[5].style.display=='none'){email='';}else{"
+																+ "email=itemc.children[5].lastElementChild.innerHTML;}"
 																+ "return JSON.stringify({'name':itemc.children[0].innerHTML,'descriptor':itemc.children[3].children[0].innerHTML,'warning':warning,'email':email})");
 			//将Json文件数据形成JSONObject对象
 //			String itemstr=item.toString().replace("=",":");
@@ -133,7 +133,7 @@ public class Game2 {
 			infor[2]=jsonObject.getString("name");
 			infor[3]=jsonObject.getString("descriptor");
 			infor[4]=jsonObject.getString("warning");
-			if (!"".equals(jsonObject.getString("email"))) {
+			if (!"".equals(jsonObject.getString("email"))&&jsonObject.getString("email").contains("@")) {
 				infor[5]=jsonObject.getString("email").substring(4);
 			}else {
 				infor[5]="";
@@ -204,8 +204,13 @@ public class Game2 {
 				}
 				if (!hasCurrentGame) {
 						gameEmail=new JSONObject();
-						emailstr=youxiang.get(0);
+						emailstr=youxiang.get(lastemail);
 				}
+				System.out.println(emailstr);
+				//返回库存后，currentNum设置1，从头开始
+				currentNum=1;
+				 //如果已经发送邮箱，则lastemail加1
+				lastemail++;
 			//发送按钮
 			((JavascriptExecutor)driver).executeScript("var info=new Array();"
 														+ "var item0=document.getElementById('iteminfo0');"
@@ -240,10 +245,6 @@ public class Game2 {
 			//返回库存
 			((JavascriptExecutor)driver).executeScript("var kucun=document.getElementById('cancel_button_bottom');"
 														+ "kucun.click();");
-			//返回库存后，currentNum设置1，从头开始
-			currentNum=1;
-			 //如果已经发送邮箱，则lastemail加1
-			lastemail++;
 		}else{
 			return null;
 		}
@@ -271,7 +272,7 @@ public class Game2 {
 			fw.close();
 		}
 		//收集已经发送的信息
-		shoujiGameInfo();
+		//shoujiGameInfo();
 		currentNum=1;
 		//第几页
 		int currentPage = 1;
